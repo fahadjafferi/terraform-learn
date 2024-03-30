@@ -1,4 +1,4 @@
-# terraform-learn
+# Terraform-Learn
 Terraform Course
 
 
