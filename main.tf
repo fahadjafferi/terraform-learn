@@ -3,40 +3,79 @@ provider "aws" {
    profile = "fahaddevaws2"
 }
 
-variable "subnet_cidr_block" {
-    description = "subnet cidr block"  
-    default = "10.0.10.0/24"
-    type = string
-  
-}
+variable vpc_cidr_block {}
 
-variable "vpc_cidr_block" {
-    description = "vpc cidr block"
-}
+variable subnet_cidr_block {}
 
-variable "environment" {
-    description = "deployment environment"
-  
-}
+variable avail_zone {}
 
-resource "aws_vpc" "development-vpc" {
+variable env_prefix{}
+
+resource "aws_vpc" "myapp-vpc" {
     cidr_block = var.vpc_cidr_block
     tags = {
-        Name = var.environment,
-        vpc_env = "dev"
+        Name: "${var.env_prefix}-vpc"
     }
 }
 
-resource "aws_subnet" "dev-sub-net-1" {
- vpc_id = aws_vpc.development-vpc.id
+resource "aws_subnet" "myapp-subnet-1" {
+ vpc_id = aws_vpc.myapp-vpc.id
  cidr_block = var.subnet_cidr_block
- availability_zone = "eu-central-1a"
+ availability_zone = var.avail_zone
  tags = {
-        Name = "learning-terraform-course-subnet",
-        subnet_env = "dev"
+        Name = "${var.env_prefix}-subnet-1"
     }
 }
 
+# resource "aws_route_table" "myapp-route-table" {
+#     vpc_id =  aws_vpc.myapp-vc.id
+#     route  { 
+#         cidr_block = "0.0.0.0/0"
+#         gateway_id = aws_internet_gateway.myapp-igw.id
+
+#     }
+#     tags = {
+#         Name: "${var.env_prefix}-rtb"
+#     }
+# }
+
+resource "aws_internet_gateway" "myapp-igw" {
+    vpc_id = aws_vpc.myapp-vpc.id
+     tags = {
+        Name: "${var.env_prefix}-igw"
+    }
+  
+}
+
+resource "aws_default_route_table" "main-rtb" {
+ default_route_table_id = aws_vpc.myapp-vpc.default_route_table_id
+ route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.myapp-igw.id
+
+ }
+ tags  = {
+    Name = "${var.env_prefix}-main-rtb"
+ }
+  
+}
+
+
+resource "aws_security_group" "myapp-sg" {
+  
+}
+
+# resource "aws_route_table_association" "main-rtb-subnet" {
+#     subnet_id = aws_subnet.myapp-subnet-1.id
+#     route_table_id = aws_default_route_table.main-rtb.id
+# }
+
+
+  
+# resource "aws_route_table_association" "a-rtb-subnet" {
+#  subnet_id = aws_subnet.myapp-subnet-1.id
+# route_table_id = aws_route_table.myapp-route-table.id
+# }
 
 
 
