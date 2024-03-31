@@ -6,3 +6,5 @@ Terraform Course
 
 This repo holds the terraform infrastructure plan for the terraform
 course.
+
+<i>This used with the second dev AWS account </i>
