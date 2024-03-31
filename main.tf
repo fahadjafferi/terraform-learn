@@ -3,19 +3,6 @@ provider "aws" {
    profile = "fahaddevaws2"
 }
 
-variable vpc_cidr_block {}
-
-variable subnet_cidr_block {}
-
-variable avail_zone {}
-
-variable env_prefix{}
-
-variable my_ip {}
-
-variable instance_type {}
-variable public_key_location{}
-
 resource "aws_vpc" "myapp-vpc" {
     cidr_block = var.vpc_cidr_block
     tags = {
@@ -113,15 +100,7 @@ data "aws_ami"  "latest-amazon-linux-image" {
     }
 }
 
-output "aws_ami_id" {
-    value = data.aws_ami.latest-amazon-linux-image.id
-  
-}
 
-# output "ec2_public_ip" {
-#    value = aws_instance.mypp-server.public_ip
-  
-# }
 
 resource "aws_instance" "mypp-server" {
     ami = data.aws_ami.latest-amazon-linux-image.id
@@ -132,10 +111,36 @@ resource "aws_instance" "mypp-server" {
     associate_public_ip_address = true
     key_name = aws_key_pair.ssh-key.key_name
 
-    user_data = file("entry-script.sh")
+    # user_data = file("entry-script.sh")
     tags = {
          Name = "${var.env_prefix}-server"
     }
+
+    connection {
+      type = "ssh"
+      host = self.public_ip
+      user = "ec2-user"
+      private_key =  file(var.private_key_location)
+    }
+
+    # provisioner "remote-exec" {
+    #     inline = [
+    #         "export ENV=dev",
+    #         "mkdir newdir"
+    #     ]
+      
+    # }
+
+    provisioner "file" {
+         source = "entry_script.sh"
+         destination = "/home/ec2-user/entry_script-on-ec2.sh"
+      
+    }
+
+    provisioner "remote-exec" {
+        script = file("entry_script-on-ec2.sh")
+    }
+ 
 
 
 }
