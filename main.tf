@@ -10,47 +10,19 @@ resource "aws_vpc" "myapp-vpc" {
     }
 }
 
-resource "aws_subnet" "myapp-subnet-1" {
- vpc_id = aws_vpc.myapp-vpc.id
- cidr_block = var.subnet_cidr_block
- availability_zone = var.avail_zone
- tags = {
-        Name = "${var.env_prefix}-subnet-1"
-    }
-}
-
-# resource "aws_route_table" "myapp-route-table" {
-#     vpc_id =  aws_vpc.myapp-vc.id
-#     route  { 
-#         cidr_block = "0.0.0.0/0"
-#         gateway_id = aws_internet_gateway.myapp-igw.id
-
-#     }
-#     tags = {
-#         Name: "${var.env_prefix}-rtb"
-#     }
-# }
-
-resource "aws_internet_gateway" "myapp-igw" {
+module "myapp-subnet" {
+    source = "./modules/subnet"
+    subnet_cidr_block = var.subnet_cidr_block
+    avail_zone = var.avail_zone
+    env_prefix = var.env_prefix
     vpc_id = aws_vpc.myapp-vpc.id
-     tags = {
-        Name: "${var.env_prefix}-igw"
-    }
-  
+    default_route_table_id = aws_vpc.myapp-vpc.default_route_table_id
+
 }
 
-resource "aws_default_route_table" "main-rtb" {
- default_route_table_id = aws_vpc.myapp-vpc.default_route_table_id
- route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.myapp-igw.id
 
- }
- tags  = {
-    Name = "${var.env_prefix}-main-rtb"
- }
-  
-}
+
+
 
 
 resource "aws_security_group" "myapp-sg" {
@@ -105,7 +77,7 @@ data "aws_ami"  "latest-amazon-linux-image" {
 resource "aws_instance" "mypp-server" {
     ami = data.aws_ami.latest-amazon-linux-image.id
     instance_type = var.instance_type
-    subnet_id = aws_subnet.myapp-subnet-1.id
+    subnet_id = module.myapp-subnet.subnet.id
     vpc_security_group_ids = [aws_security_group.myapp-sg.id]
     availability_zone = var.avail_zone
     associate_public_ip_address = true
