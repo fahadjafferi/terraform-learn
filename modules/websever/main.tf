@@ -37,7 +37,7 @@ data "aws_ami"  "latest-amazon-linux-image" {
         values = [var.image_name]
       
     }
-# al2023-ami-*-kernel-6.1-x86_64
+
     filter {
       name = "virtualization-type"
       values = ["hvm"]
