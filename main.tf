@@ -1,3 +1,13 @@
+terraform {
+required_version = ">= 0.12"
+backend "s3" {
+    bucket = "tf-backend"
+    key = "myapp/state.tfstate"
+    region = "eu-central-1"
+}
+
+}
+
 provider "aws" {
     region = "eu-central-1"
    profile = "fahaddevaws2"
